@@ -158,7 +158,7 @@ const deleteTask = async (taskToDelete) => {
         error.value = 'Error al esborrar la tasca.';
         // Recomanat canviar a cometes dobles per llegibilitat:
         alert("No s'ha pogut esborrar la tasca al servidor.");
-    } // <-- El punt i coma s'ha eliminat d'aquí
+    }
 };
 
 /**
