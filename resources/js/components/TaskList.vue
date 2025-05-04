@@ -2,109 +2,172 @@
     <div class="task-list-container">
         <h1>Mi Lista de Tareas (Vue)</h1>
 
-        <!-- Formulario para añadir nueva tarea -->
-        <!-- @submit.prevent evita que la página se recargue al enviar el formulario -->
         <form @submit.prevent="addTask" class="add-task-form">
             <input type="text" v-model="newTaskTitle" placeholder="Añadir nueva tarea..." required />
             <button type="submit">Añadir</button>
         </form>
 
-        <!-- Mensaje de carga/estado -->
-        <p>{{ message }}</p>
+        <p v-if="loading">Cargando tareas...</p>
+        <p v-else-if="error" class="error-message">{{ error }}</p>
+        <p v-else-if="tasks.length === 0">No hay tareas pendientes.</p>
 
-        <!-- Lista de tareas -->
-        <ul v-if="tasks.length > 0" class="task-list">
-            <li v-for="task in tasks" :key="task.id">
-                <span>{{ task.title }}</span>
-            </li>
-        </ul>
-
+        <!-- Usamos el nuevo componente en el v-for -->
+        <div v-else class="tasks-container">
+            <TaskItem
+                v-for="task in tasks"
+                :key="task.id"
+                :task="task"
+                @toggle-complete="toggleComplete"
+                @delete-task="deleteTask"
+                @update-task-title="handleUpdateTitle"  
+            />
+        </div>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'; // <-- Añade onMounted
-import axios from 'axios';          // <-- Importa axios
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+import TaskItem from './TaskItem.vue';
 
-console.log("Componente TaskList cargado!");
-
-// Estado reactivo para almacenar las tareas
-const tasks = ref([]); // Inicializamos como un array vacío
-
-// Estado para el mensaje (podemos quitarlo o dejarlo por ahora)
-const message = ref('Cargando tareas...');
+const tasks = ref([]);
 const newTaskTitle = ref('');
+const loading = ref(true);
+const error = ref(null);
 
-// Función para obtener las tareas de la API
+// --- FUNCIONES EXISTENTES (sin cambios en su lógica interna por ahora) ---
 const fetchTasks = async () => {
+    loading.value = true;
+    error.value = null;
     console.log("Fetching tasks from API...");
     try {
-        // Hacemos una petición GET a nuestro endpoint de Laravel
         const response = await axios.get('/api/tasks');
-        // Actualizamos nuestro estado reactivo 'tasks' con los datos recibidos
         tasks.value = response.data;
         console.log("Tasks fetched:", tasks.value);
-        message.value = 'Lista de tareas:'; // Cambiamos el mensaje
-        if (tasks.value.length === 0) {
-            message.value = 'No hay tareas pendientes.';
-        }
-    } catch (error) {
-        console.error("Error fetching tasks:", error);
-        message.value = 'Error al cargar las tareas.';
-        // Aquí podríamos mostrar un mensaje de error más elaborado al usuario
+    } catch (err) {
+        console.error("Error fetching tasks:", err);
+        error.value = 'Error al cargar las tareas.';
+    } finally {
+        loading.value = false;
     }
 };
-// Función para añadir una nueva tarea
+
 const addTask = async () => {
-    // Validación simple: no añadir si el título está vacío (quitando espacios)
     if (newTaskTitle.value.trim() === '') {
         alert('Por favor, introduce un título para la tarea.');
-        return; // Detiene la ejecución de la función
+        return;
     }
-
+    error.value = null;
     console.log('Adding task:', newTaskTitle.value);
-    message.value = 'Añadiendo tarea...'; // Mensaje de feedback
-
     try {
-        // Hacemos la petición POST a la API de Laravel
-        // Enviamos un objeto con la propiedad 'title'
         const response = await axios.post('/api/tasks', {
             title: newTaskTitle.value
         });
-
-        // Si la API responde correctamente (código 201 y la tarea creada):
-        // Añadimos la nueva tarea (devuelta por la API) al INICIO del array local 'tasks'.
-        // Usar unshift() hace que las nuevas tareas aparezcan arriba.
         tasks.value.unshift(response.data);
-
-        // Limpiamos el input (gracias a v-model, esto borrará el texto del input)
         newTaskTitle.value = '';
-        message.value = ''; // Limpiamos el mensaje de estado
-
-    } catch (error) {
-        console.error("Error adding task:", error);
-        message.value = 'Error al añadir la tarea.';
-        // Podríamos inspeccionar 'error.response.data' si Laravel envía errores de validación específicos
-        if (error.response && error.response.data && error.response.data.message) {
-            alert(`Error: ${error.response.data.message}`);
+    } catch (err) {
+        console.error("Error adding task:", err);
+        error.value = 'Error al añadir la tarea.';
+        if (err.response && err.response.data && err.response.data.message) {
+            alert(`Error: ${err.response.data.message}`);
         } else {
             alert('Ocurrió un error inesperado al añadir la tarea.');
         }
     }
 };
 
-// Hook del ciclo de vida: se ejecuta cuando el componente se monta en el DOM
+const toggleComplete = async (taskToToggle) => {
+    console.log('Handling toggle-complete event for task:', taskToToggle.id);
+    error.value = null;
+    const taskIndex = tasks.value.findIndex(t => t.id === taskToToggle.id); // Usamos findIndex
+    if (taskIndex === -1) return;
+
+    const originalTask = tasks.value[taskIndex]; // Obtenemos la tarea del array
+    const originalStatus = originalTask.is_complete;
+    originalTask.is_complete = !originalTask.is_complete; // Actualización optimista
+
+    try {
+        // Asegúrate de enviar el ID correcto
+        await axios.put(`/api/tasks/${originalTask.id}`, {
+            is_complete: originalTask.is_complete
+        });
+        console.log('Task updated successfully on server');
+        // Opcional: refrescar la tarea específica con la respuesta si la API devuelve algo útil
+        // const response = await axios.put...
+        // tasks.value[taskIndex] = response.data;
+    } catch (err) {
+        console.error("Error updating task:", err);
+        error.value = 'Error al actualizar la tarea.';
+        originalTask.is_complete = originalStatus; // Revertir
+        alert('No se pudo actualizar la tarea en el servidor.');
+    }
+};
+
+const deleteTask = async (taskToDelete) => {
+    console.log('Handling delete-task event for task:', taskToDelete.id);
+    error.value = null;
+    // Añadimos confirmación aquí por si acaso
+     if (!confirm(`¿Seguro que quieres borrar la tarea "${taskToDelete.title}"?`)) {
+         return;
+     }
+    try {
+        await axios.delete(`/api/tasks/${taskToDelete.id}`);
+        tasks.value = tasks.value.filter(t => t.id !== taskToDelete.id);
+        console.log('Task deleted successfully');
+    } catch (err) {
+        console.error("Error deleting task:", err);
+        error.value = 'Error al borrar la tarea.';
+        alert('No se pudo borrar la tarea en el servidor.');
+    }
+};
+
+// --- FUNCIÓN QUE FALTABA ---
+const handleUpdateTitle = async (taskId, newTitle) => {
+    console.log(`TaskList: Handling update-task-title. ID: ${taskId}, Title: "${newTitle}"`);
+    error.value = null;
+    const taskIndex = tasks.value.findIndex(t => t.id === taskId);
+    if (taskIndex === -1) {
+        console.error("Task not found for update!");
+        return;
+    }
+
+    // Guardamos el título original por si falla la API
+    const originalTitle = tasks.value[taskIndex].title;
+
+    try {
+        // Llamamos a la API para actualizar SOLO el título
+        const response = await axios.put(`/api/tasks/${taskId}`, {
+            title: newTitle
+        });
+
+        // Actualizamos TODO el objeto tarea en nuestro array local con la respuesta de la API
+        // Esto asegura que tenemos los datos más recientes (incluyendo updated_at si cambió)
+        tasks.value[taskIndex] = response.data;
+
+        console.log('TaskList: Local task updated with API response:', tasks.value[taskIndex]);
+
+    } catch (err) {
+        console.error("Error updating task title:", err);
+        error.value = 'Error al actualizar el título.';
+        // Opcional: podríamos revertir si quisiéramos, pero como no hicimos update optimista
+        // para el título, no es estrictamente necesario, aunque podríamos mostrar el error.
+        alert('No se pudo actualizar el título de la tarea en el servidor.');
+        // Si quisiéramos revertir visualmente (aunque no es lo ideal sin update optimista):
+        // tasks.value[taskIndex].title = originalTitle;
+    }
+};
+// --------------------------
+
 onMounted(() => {
-    fetchTasks(); // Llamamos a la función para cargar las tareas
+    fetchTasks();
 });
 
 </script>
 
-
 <style scoped>
-/* Los estilos aquí solo se aplicarán a ESTE componente */
+/* Quitamos los estilos de 'ul' y 'li' que ahora están en TaskItem.vue */
 .task-list-container {
-    max-width: 600px;
+    max-width: 700px;
     margin: 2rem auto;
     padding: 1.5rem;
     background-color: #f9f9f9;
@@ -121,31 +184,36 @@ h1 {
 .add-task-form {
     display: flex;
     margin-bottom: 1.5rem;
-    /* Espacio antes del mensaje/lista */
 }
 
 .add-task-form input[type="text"] {
     flex-grow: 1;
-    /* El input ocupa el espacio disponible */
     padding: 0.6rem;
     border: 1px solid #ccc;
     border-radius: 4px 0 0 4px;
-    /* Bordes redondeados a la izquierda */
 }
 
 .add-task-form button {
     padding: 0.6rem 1rem;
     background-color: #4CAF50;
-    /* Verde */
     color: white;
     border: none;
     border-radius: 0 4px 4px 0;
-    /* Bordes redondeados a la derecha */
     cursor: pointer;
     transition: background-color 0.2s;
 }
 
 .add-task-form button:hover {
     background-color: #45a049;
+}
+
+.error-message {
+    color: #d32f2f; /* Rojo */
+    text-align: center;
+    margin: 1rem 0;
+}
+
+.tasks-container {
+    margin-top: 1.5rem;
 }
 </style>

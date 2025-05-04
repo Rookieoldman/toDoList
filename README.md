@@ -1,70 +1,79 @@
-<<<<<<< HEAD
-# toDoList
-=======
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# La Meva Llista de Tasques (Laravel + Vue 3)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aquest és un projecte simple de llista de tasques desenvolupat amb Laravel 10 per al backend (API) i Vue 3 (Composition API) amb Vite per al frontend.
 
-## About Laravel
+## Requisits Prevists
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+*   PHP >= 8.1 (o la versió requerida pel teu Laravel)
+*   Composer
+*   Node.js i npm
+*   Un servidor de base de dades (ex. MySQL, MariaDB, PostgreSQL)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Instal·lació
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1.  **Clonar el repositori:**
+    ```bash
+    git clone https://github.com/Rookieoldman/toDoList.git
+    cd toDoList
+    ```
 
-## Learning Laravel
+2.  **Instal·lar dependències de Backend (PHP/Laravel):**
+    ```bash
+    composer install
+    ```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+3.  **Configuració de l'Entorn:**
+    *   Copia el fitxer d'exemple `.env.example` a `.env`:
+        ```bash
+        cp .env.example .env
+        ```
+    *   Edita el fitxer `.env` amb la configuració de la teva base de dades (`DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`). Assegura't d'haver creat la base de dades especificada.
+    *   Genera la clau de l'aplicació:
+        ```bash
+        php artisan key:generate
+        ```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+4.  **Executar les Migracions:** Això crearà la taula `tasks` a la teva base de dades.
+    ```bash
+    php artisan migrate
+    ```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+5.  **Instal·lar dependències de Frontend (Node.js/Vue):**
+    *   Aquesta comanda instal·larà totes les dependències llistades a `package.json`, incloent Vue, Vite, Axios, etc.
+        ```bash
+        npm install
+        ```
+    *   **Dependències Clau del Frontend:**
+        El projecte utilitza les següents llibreries principals per al frontend, les quals han de ser instal·lades per la comanda `npm install` anterior si el fitxer `package.json` està actualitzat:
+        *   **Vue 3 (`vue`):** El framework progressiu de JavaScript. (Instal·lat amb `npm install vue@latest --save-dev`).
+        *   **Vite (`vite`):** Eina de construcció i servidor de desenvolupament ràpid per al frontend. (Normalment inclòs per Laravel).
+        *   **Plugin Vue per a Vite (`@vitejs/plugin-vue`):** Necessari perquè Vite pugui processar i compilar fitxers `.vue`. (Instal·lat amb `npm install @vitejs/plugin-vue --save-dev`).
+        *   **Axios (`axios`):** Client HTTP basat en promeses per fer les crides a l'API de Laravel. (Instal·lat amb `npm install axios`).
+        *   **Laravel Vite Plugin (`laravel-vite-plugin`):** Pont entre Laravel i Vite. (Normalment inclòs per Laravel).
 
-## Laravel Sponsors
+## Execució en Desenvolupament
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Necessitaràs **dues terminals** obertes al directori arrel del projecte (`toDoList`):
 
-### Premium Partners
+1.  **Terminal 1: Servidor de Vite (Compila i serveix el frontend):**
+    ```bash
+    npm run dev
+    ```
+    Vite observarà els canvis als teus fitxers Vue/JS/CSS i els compilarà sobre la marxa.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+2.  **Terminal 2: Servidor de Laravel (Serveix el backend i la pàgina inicial):**
+    ```bash
+    php artisan serve
+    ```
 
-## Contributing
+3.  **Accedir a l'aplicació:** Obre el teu navegador web i visita l'URL proporcionada per `php artisan serve` (generalment `http://127.0.0.1:8000`).
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Funcionalitats Implementades
 
-## Code of Conduct
+*   Veure la llista de tasques.
+*   Afegir noves tasques.
+*   Marcar tasques com a completades/incompletes (fent clic al botó "Done"/"Undo").
+*   Editar el títol de les tasques (fent clic a "Edit").
+*   Esborrar tasques (fent clic a "×").
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
->>>>>>> 1345d47 (create a nd read todolist)
+---
