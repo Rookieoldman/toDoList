@@ -158,7 +158,8 @@ const deleteTask = async (taskToDelete) => {
         error.value = 'Error al esborrar la tasca.';
         // Recomanat canviar a cometes dobles per llegibilitat:
         alert("No s'ha pogut esborrar la tasca al servidor.");
-    } // <-- El punt i coma s'ha eliminat d'aquí
+
+    }
 };
 
 /**
@@ -195,7 +196,9 @@ const handleUpdateTitle = async (taskId, newTitle) => {
     } catch (err) {
         // Si la crida a l'API falla
         console.error("Error actualitzant el títol de la tasca:", err);
+
         error.value = "Error al actualitzar el títol.";
+
         alert("No s'ha pogut actualitzar el títol de la tasca al servidor.");
         // Aquí podríem revertir el canvi si haguéssim fet actualització optimista
     }
