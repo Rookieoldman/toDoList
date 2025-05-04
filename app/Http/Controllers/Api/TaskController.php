@@ -49,12 +49,16 @@ class TaskController extends Controller
     {
         
         $validatedData = $request->validate([
-            'is_complete' => 'required|boolean',
+            'title' => 'sometimes|required|string|max:255', // Requerido SOLO SI se envía
+            'is_complete' => 'sometimes|required|boolean', // Requerido SOLO SI se envía
         ]);
 
-        $task->update([
-            'is_complete' => $validatedData['is_complete'],
-        ]);
+        if (empty($validatedData)) {
+            // Puedes devolver la tarea sin cambios o un mensaje de error
+             return response()->json($task); // Devolver sin cambios
+            // O: return response()->json(['message' => 'No data provided for update.'], 400);
+        }
+        $task->update($validatedData);
 
         return response()->json($task, 200);
     }
