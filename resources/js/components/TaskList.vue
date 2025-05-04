@@ -15,14 +15,8 @@
 
         <!-- Contenidor per a les tasques, utilitzant el component TaskItem -->
         <div v-else class="tasks-container">
-            <TaskItem
-                v-for="task in tasks"
-                :key="task.id"
-                :task="task"
-                @toggle-complete="toggleComplete"
-                @delete-task="deleteTask"
-                @update-task-title="handleUpdateTitle"
-            />
+            <TaskItem v-for="task in tasks" :key="task.id" :task="task" @toggle-complete="toggleComplete"
+                @delete-task="deleteTask" @update-task-title="handleUpdateTitle" />
         </div>
     </div>
 </template>
@@ -148,10 +142,10 @@ const deleteTask = async (taskToDelete) => {
     console.log('Gestionant event delete-task per a la tasca:', taskToDelete.id);
     error.value = null; // Resetejem errors previs
 
-    // Demanem confirmació a l'usuari (pot estar també al component fill)
-     if (!confirm(`Segur que vols esborrar la tasca "${taskToDelete.title}"?`)) {
-         return; // L'usuari ha cancel·lat
-     }
+    // Demanem confirmació a l'usuari
+    if (!confirm(`Segur que vols esborrar la tasca "${taskToDelete.title}"?`)) {
+        return; // L'usuari ha cancel·lat
+    }
     try {
         // Fem la petició DELETE a l'API
         await axios.delete(`/api/tasks/${taskToDelete.id}`);
@@ -162,8 +156,9 @@ const deleteTask = async (taskToDelete) => {
         // Si hi ha un error durant la petició DELETE
         console.error("Error esborrant tasca:", err);
         error.value = 'Error al esborrar la tasca.';
-        alert('No s\'ha pogut esborrar la tasca al servidor.');
-    }
+        // Recomanat canviar a cometes dobles per llegibilitat:
+        alert("No s'ha pogut esborrar la tasca al servidor.");
+    } // <-- El punt i coma s'ha eliminat d'aquí
 };
 
 /**
@@ -195,13 +190,13 @@ const handleUpdateTitle = async (taskId, newTitle) => {
         // Això és important per mantenir la coherència (p.ex., updated_at).
         tasks.value[taskIndex] = response.data;
 
-        console.log('TaskList: Estat local de la tasca actualitzat amb la resposta de l'API:', tasks.value[taskIndex]);
+        console.log("TaskList: Estat local de la tasca actualitzat amb la resposta de l'API: ", tasks.value[taskIndex]);
 
     } catch (err) {
         // Si la crida a l'API falla
         console.error("Error actualitzant el títol de la tasca:", err);
         error.value = 'Error al actualitzar el títol.';
-        alert('No s\'ha pogut actualitzar el títol de la tasca al servidor.');
+        alert("No s'ha pogut actualitzar el títol de la tasca al servidor.");
         // Aquí podríem revertir el canvi si haguéssim fet actualització optimista
     }
 };
@@ -262,7 +257,8 @@ h1 {
 }
 
 .error-message {
-    color: #d32f2f; /* Vermell */
+    color: #d32f2f;
+    /* Vermell */
     text-align: center;
     margin: 1rem 0;
 }
